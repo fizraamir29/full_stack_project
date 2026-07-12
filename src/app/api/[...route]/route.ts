@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic'; // Prevent Next.js from caching API responses (fixes mock mode caching)
+
 import fs from 'fs';
 import path from 'path';
 import mongoose from 'mongoose';
