@@ -1,6 +1,17 @@
 import mongoose from 'mongoose';
+import dns from 'dns';
 
-const MONGODB_URI = process.env.MONGO_URI || '';
+// Force IPv4 first and use public DNS servers to resolve MongoDB SRV records reliably
+try {
+  if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+  }
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch (e) {
+  console.warn('⚠️ Could not set custom DNS servers:', e);
+}
+
+const MONGODB_URI = process.env.MONGO_URI || process.env.MONGODB_URI || '';
 
 let cached = (global as any).mongoose;
 
@@ -13,6 +24,7 @@ const RETRY_AFTER_MS = 10_000;
 
 export async function connectDB() {
   if (!MONGODB_URI) {
+    console.warn('⚠️ MONGO_URI / MONGODB_URI is not set in environment variables.');
     return null;
   }
 

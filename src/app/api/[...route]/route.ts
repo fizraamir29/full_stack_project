@@ -166,10 +166,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ route: s
         return NextResponse.json({ success: false, message: 'Access denied. Please login to continue.' }, { status: 401 });
       }
       if (mongoose.connection.readyState !== 1) {
-        return NextResponse.json({ success: true, user });
+        return NextResponse.json({ success: true, user, dbStatus: 'mock' });
       }
       const dbUser = await User.findById(user.id).populate('wishlist', 'name images price');
-      return NextResponse.json({ success: true, user: dbUser });
+      return NextResponse.json({ success: true, user: dbUser, dbStatus: 'live' });
     }
 
     // 2. Products Endpoint: /api/products
@@ -382,6 +382,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ route: s
       if (mongoose.connection.readyState !== 1) {
         return NextResponse.json({
           success: true,
+          dbStatus: 'mock',
           stats: {
             users: { total: mockUsersMemory.length, newThisMonth: 1 },
             products: { total: mockProductsMemory.length, outOfStock: 0 },
@@ -444,6 +445,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ route: s
 
       return NextResponse.json({
         success: true,
+        dbStatus: 'live',
         stats: {
           users: { total: totalUsers, newThisMonth: newUsersThisMonth },
           products: { total: totalProducts, outOfStock },

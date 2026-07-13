@@ -606,6 +606,7 @@ export default function AdminPage() {
   });
 
   const [stats, setStats] = useState<any>(null);
+  const [dbStatus, setDbStatus] = useState<'live' | 'mock' | 'checking'>('checking');
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
@@ -900,6 +901,11 @@ export default function AdminPage() {
       const chatData = chatRes.ok ? await chatRes.json() : {};
 
       setStats(statsData.stats || null);
+      if (statsData.dbStatus) {
+        setDbStatus(statsData.dbStatus);
+      } else {
+        setDbStatus('live');
+      }
       setProducts(prodData.products || prodData.data || []);
       
       // Inject some mock draft and abandoned checkout orders for demonstration
@@ -942,6 +948,7 @@ export default function AdminPage() {
       if (prodRes.ok) saveProducts(prodData.products || prodData.data || []);
     } catch (err) {
       console.error('Failed to load admin data:', err);
+      setDbStatus('mock');
     }
   };
 
@@ -1558,6 +1565,34 @@ export default function AdminPage() {
 
         {/* Main Content Area */}
         <main className="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+          {dbStatus === 'mock' && (
+            <div className="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg text-xs text-amber-800 shadow-sm space-y-2 animate-fade-in">
+              <div className="flex items-center gap-2 font-bold text-amber-950">
+                <AlertTriangle className="w-4 h-4 text-amber-600" />
+                <span>⚠️ Local Mock Database Fallback Mode Active</span>
+              </div>
+              <p className="leading-relaxed">
+                The application could not establish a connection to your MongoDB instance. Currently, it is running in local memory fallback mode. <strong>Any changes you make (adding products, placing orders, updating status) will disappear</strong> when the Vercel serverless container restarts or goes idle.
+              </p>
+              <div className="text-[11px] font-semibold text-amber-900 bg-amber-100/50 p-2.5 rounded border border-amber-200 mt-2 space-y-1">
+                <p><strong>To resolve this:</strong></p>
+                <ol className="list-decimal pl-4 space-y-1">
+                  <li>Check that your <code>MONGO_URI</code> (or <code>MONGODB_URI</code>) environment variable is set correctly in Vercel.</li>
+                  <li>In MongoDB Atlas, make sure you have allowed access from anywhere (IP address <code>0.0.0.0/0</code> whitelisted in the Network Access tab).</li>
+                </ol>
+              </div>
+            </div>
+          )}
+
+          {dbStatus === 'live' && (
+            <div className="p-2 px-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-lg text-[11px] text-emerald-800 font-semibold flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
+                <span>Connected to MongoDB (Data is saving permanently)</span>
+              </div>
+              <span className="text-[10px] text-emerald-600">Database Live</span>
+            </div>
+          )}
 
           {/* Create Order view trigger screen overrides standard tabs */}
           {showCreateOrderView ? (
