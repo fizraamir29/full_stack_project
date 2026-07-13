@@ -607,6 +607,7 @@ export default function AdminPage() {
 
   const [stats, setStats] = useState<any>(null);
   const [dbStatus, setDbStatus] = useState<'live' | 'mock' | 'checking'>('checking');
+  const [dbError, setDbError] = useState<string>('');
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
@@ -903,8 +904,10 @@ export default function AdminPage() {
       setStats(statsData.stats || null);
       if (statsData.dbStatus) {
         setDbStatus(statsData.dbStatus);
+        setDbError(statsData.dbError || '');
       } else {
         setDbStatus('live');
+        setDbError('');
       }
       setProducts(prodData.products || prodData.data || []);
       
@@ -949,6 +952,7 @@ export default function AdminPage() {
     } catch (err) {
       console.error('Failed to load admin data:', err);
       setDbStatus('mock');
+      setDbError(String(err));
     }
   };
 
@@ -1580,6 +1584,11 @@ export default function AdminPage() {
                   <li>Check that your <code>MONGO_URI</code> (or <code>MONGODB_URI</code>) environment variable is set correctly in Vercel.</li>
                   <li>In MongoDB Atlas, make sure you have allowed access from anywhere (IP address <code>0.0.0.0/0</code> whitelisted in the Network Access tab).</li>
                 </ol>
+                {dbError && (
+                  <div className="mt-2 pt-2 border-t border-amber-200/50 font-mono text-[10px] text-amber-950 break-all select-text">
+                    <strong>Error Details:</strong> {dbError}
+                  </div>
+                )}
               </div>
             </div>
           )}

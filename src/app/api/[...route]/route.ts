@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-import { connectDB } from '@/lib/mongodb';
+import { connectDB, getMongoError } from '@/lib/mongodb';
 import { getAuthenticatedUser, isAdmin, AuthUser } from '@/lib/auth';
 import {
   mockUsersMemory,
@@ -166,7 +166,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ route: s
         return NextResponse.json({ success: false, message: 'Access denied. Please login to continue.' }, { status: 401 });
       }
       if (mongoose.connection.readyState !== 1) {
-        return NextResponse.json({ success: true, user, dbStatus: 'mock' });
+        return NextResponse.json({ success: true, user, dbStatus: 'mock', dbError: getMongoError() });
       }
       const dbUser = await User.findById(user.id).populate('wishlist', 'name images price');
       return NextResponse.json({ success: true, user: dbUser, dbStatus: 'live' });
@@ -383,6 +383,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ route: s
         return NextResponse.json({
           success: true,
           dbStatus: 'mock',
+          dbError: getMongoError(),
           stats: {
             users: { total: mockUsersMemory.length, newThisMonth: 1 },
             products: { total: mockProductsMemory.length, outOfStock: 0 },
